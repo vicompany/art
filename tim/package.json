@@ -1,0 +1,12 @@
+{
+  "private": true,
+  "scripts": {
+    "dev": "browser-sync start -s --directory",
+    "lint": "eslint **/*.js"
+  },
+  "devDependencies": {
+    "browser-sync": "^2.27.5",
+    "eslint": "^8.0.1",
+    "eslint-config-airbnb": "^18.2.1"
+  }
+}
