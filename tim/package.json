@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "dev": "browser-sync start -s --directory",
+    "dev": "browser-sync start -sw --directory",
     "lint": "eslint **/*.js"
   },
   "devDependencies": {
