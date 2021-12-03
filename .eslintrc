@@ -1,8 +1,5 @@
 {
-  "root": true,
-
   "env": {
-    "browser": true,
     "es2021": true,
     "node": true
   },
@@ -13,7 +10,8 @@
     "ecmaVersion": 12
   },
   "rules": {
-    "no-plusplus": "off",
+    "import/no-extraneous-dependencies": "off",
+    "no-await-in-loop": "off",
     "no-restricted-syntax": "off"
   }
 }
