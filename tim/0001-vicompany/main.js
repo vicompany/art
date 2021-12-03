@@ -1,8 +1,37 @@
+// eslint-disable-next-line import/extensions, import/no-unresolved
+import * as Vector from 'https://unpkg.com/@bieb/vector@1.2.0/lib/vector.esm.js';
+
+function createPathFromSvgPath(svgPath, detail = 1024) {
+  const svgPathLength = svgPath.getTotalLength();
+
+  const path = Array.from({ length: detail }, (_, index) => {
+    const t = index / detail;
+    const { x, y } = svgPath.getPointAtLength(t * svgPathLength);
+
+    return [x, y];
+  });
+
+  return {
+    style: svgPath.getAttribute('fill'),
+
+    getPointAt(t) {
+      const indexFloat = (t * path.length) % path.length;
+      const indexBefore = Math.floor(indexFloat) % path.length;
+      const indexAfter = (indexBefore + 1) % path.length;
+      const indexRemainder = indexFloat - indexBefore;
+
+      return Vector.mix(path[indexBefore], path[indexAfter], indexRemainder);
+    },
+  };
+}
+
 function createRenderer({
   canvas,
   padding,
   paths,
   scale,
+  trailDetal,
+  trailLength,
 }) {
   const context = canvas.getContext('2d');
 
@@ -19,25 +48,23 @@ function createRenderer({
     context.lineJoin = 'round';
     context.lineWidth = 4;
 
-    for (const [index, path] of paths.entries()) {
-      const t = index / paths.length;
-      let length = t * path.getTotalLength() + (time / 3000) * path.getTotalLength();
+    const tOffset = (time / 1000) / 3;
 
+    for (const path of paths) {
       context.beginPath();
 
-      for (let i = 0; i < 32; i++) {
-        const { x, y } = path.getPointAtLength(length % path.getTotalLength());
+      for (let i = 0; i < trailDetal; i++) {
+        const t = trailLength * (i / trailDetal);
+        const [x, y] = path.getPointAt(t + tOffset);
 
         if (i === 0) {
           context.moveTo(x, y);
         } else {
           context.lineTo(x, y);
         }
-
-        length += path.getTotalLength() / 128;
       }
 
-      context.strokeStyle = path.getAttribute('fill');
+      context.strokeStyle = path.style;
       context.stroke();
     }
 
@@ -61,11 +88,17 @@ const [,, width, height] = logo.getAttribute('viewBox').split(/\s+/);
 canvas.height = scale * height + 2 * padding;
 canvas.width = scale * width + 2 * padding;
 
+const pathDetail = 2048;
+const paths = Array.from(logo.querySelectorAll('path'))
+  .map((svgPath) => createPathFromSvgPath(svgPath, pathDetail));
+
 const renderer = createRenderer({
   canvas,
-  paths: Array.from(logo.querySelectorAll('path')),
-  scale,
   padding,
+  paths,
+  scale,
+  trailDetal: 512,
+  trailLength: 0.75,
 });
 
 renderer.start();
